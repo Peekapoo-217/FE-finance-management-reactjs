@@ -12,6 +12,7 @@ import {
 import { Dashboard } from './components/pages/Dashboard';
 import { TransactionList } from './components/features/transactions/TransactionList';
 import { BudgetManager } from './components/features/budgets/BudgetManager';
+import { WalletManager } from './components/features/wallets/WalletManager';
 import { ReportsPage } from './components/pages/ReportsPage';
 import { ProfilePage } from './components/pages/ProfilePage';
 import { LoginPage } from './components/pages/LoginPage';
@@ -61,6 +62,7 @@ export default function App() {
   const menuItems = [
     { id: 'dashboard', label: 'Tổng quan', icon: LayoutDashboard },
     { id: 'transactions', label: 'Giao dịch', icon: Receipt },
+    { id: 'wallets', label: 'Ví', icon: Wallet },
     { id: 'budgets', label: 'Ngân sách', icon: Target },
     { id: 'reports', label: 'Báo cáo', icon: BarChart3 },
     { id: 'sync', label: 'Đồng bộ', icon: RefreshCw },
@@ -129,6 +131,9 @@ export default function App() {
             )}
             {activeTab === 'transactions' && (
               <TransactionList onDataChange={handleDataChange} />
+            )}
+            {activeTab === 'wallets' && (
+              <WalletManager onDataChange={handleDataChange} />
             )}
             {activeTab === 'budgets' && (
               <BudgetManager onDataChange={handleDataChange} />

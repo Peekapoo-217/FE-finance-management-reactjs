@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 import { Card } from "../ui/layout/card";
-import { Button } from "../ui/interactive/button";
-import { Input } from "../ui/form/input";
-import { Label } from "../ui/form/label";
-import { Wallet, Mail, Lock, User, Loader2 } from "lucide-react";
+import { Wallet } from "lucide-react";
 import { toast } from "sonner";
-import { authApi, TokenManager } from "../../services/api";
+import { authApi, TokenManager, walletApi } from "../../services/api";
+import { LoginForm } from "./auth/LoginForm";
+import { RegisterForm } from "./auth/RegisterForm";
 
 interface LoginPageProps {
   onLogin: () => void;
@@ -32,32 +31,42 @@ export function LoginPage({ onLogin }: LoginPageProps) {
     setLoading(true);
     try {
       if (isRegister) {
-        // Register -> sau đó auto login để lấy token
         await authApi.register({
           name: formData.name,
           email: formData.email,
           password: formData.password,
         });
 
-        const loginRes = await authApi.login({
+        toast.success('Đăng ký thành công! Vui lòng đăng nhập.');
+        
+        setFormData({
+          name: '',
           email: formData.email,
-          password: formData.password,
+          password: '',
+          confirmPassword: ''
         });
-
-        TokenManager.setToken(loginRes.accessToken);
-        TokenManager.setUserId(loginRes.user.id.toString());
-
-        toast.success('Đăng ký & đăng nhập thành công!');
-        onLogin();
+        setIsRegister(false);
       } else {
-        // Login
         const response = await authApi.login({
           email: formData.email,
           password: formData.password,
         });
 
+        if (!response || !response.accessToken) {
+          toast.error('Lỗi: Không nhận được token từ server');
+          return;
+        }
+
         TokenManager.setToken(response.accessToken);
-        TokenManager.setUserId(response.user.id.toString());
+        if (response.user?.id) {
+          TokenManager.setUserId(response.user.id.toString());
+        }
+
+        try {
+          await walletApi.getAll();
+        } catch (error) {
+          console.log('Wallet creation will happen on demand');
+        }
 
         toast.success('Đăng nhập thành công!');
         onLogin();
@@ -82,80 +91,21 @@ export function LoginPage({ onLogin }: LoginPageProps) {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {isRegister && (
-            <div>
-              <Label htmlFor="name">
-                <User className="inline mr-2" size={16} />
-                Họ và tên
-              </Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required={isRegister}
-                placeholder="Nhập họ và tên"
-              />
-            </div>
-          )}
-
-          <div>
-            <Label htmlFor="email">
-              <Mail className="inline mr-2" size={16} />
-              Email
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              required
-              placeholder="Nhập email"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="password">
-              <Lock className="inline mr-2" size={16} />
-              Mật khẩu
-            </Label>
-            <Input
-              id="password"
-              type="password"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              required
-              placeholder="Nhập mật khẩu"
-              minLength={6}
-            />
-          </div>
-
-          {isRegister && (
-            <div>
-              <Label htmlFor="confirmPassword">Xác nhận mật khẩu</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                value={formData.confirmPassword}
-                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                required={isRegister}
-                placeholder="Nhập lại mật khẩu"
-                minLength={6}
-              />
-            </div>
-          )}
-
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? (
-              <>
-                <Loader2 className="mr-2 animate-spin" size={16} />
-                Đang xử lý...
-              </>
-            ) : (
-              isRegister ? 'Đăng ký' : 'Đăng nhập'
-            )}
-          </Button>
-        </form>
+        {isRegister ? (
+          <RegisterForm
+            formData={formData}
+            loading={loading}
+            onFormDataChange={(data) => setFormData({ ...formData, ...data })}
+            onSubmit={handleSubmit}
+          />
+        ) : (
+          <LoginForm
+            formData={formData}
+            loading={loading}
+            onFormDataChange={(data) => setFormData({ ...formData, ...data })}
+            onSubmit={handleSubmit}
+          />
+        )}
 
         <div className="mt-6 text-center">
           <button

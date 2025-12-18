@@ -171,7 +171,7 @@ export function ProfilePage({ user, onUpdate }: ProfilePageProps) {
             <p className="text-xl text-green-600 mt-2">14/12/2024</p>
           </div>
           <div className="text-center p-4 bg-purple-50 rounded-lg">
-            <p className="text-gray-600">Ngân sách đang theo dõi</p>
+            <p className="text-gray-600">Danh mục đang theo dõi</p>
             <p className="text-3xl text-purple-600 mt-2">0</p>
           </div>
         </div>

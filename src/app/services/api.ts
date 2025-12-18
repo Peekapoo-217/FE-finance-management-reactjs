@@ -58,13 +58,25 @@ async function apiCall<T>(
       return undefined as T;
     }
 
-    // Some DELETE endpoints may return empty string; try to parse JSON, fallback undefined
+    // Parse JSON response
     try {
       const text = await response.text();
-      if (!text) return undefined as T;
-      return JSON.parse(text) as T;
-    } catch (parseErr) {
-      return undefined as T;
+      if (!text || text.trim() === '') {
+        // Empty response for DELETE requests is OK
+        if (method === 'DELETE') {
+          return undefined as T;
+        }
+        throw new Error('Empty response from server');
+      }
+      const parsed = JSON.parse(text);
+      return parsed as T;
+    } catch (parseErr: any) {
+      // If parsing fails for DELETE, return undefined
+      if (method === 'DELETE') {
+        return undefined as T;
+      }
+      console.error('Failed to parse JSON response:', parseErr);
+      throw new Error(`Invalid server response: ${parseErr.message}`);
     }
   } catch (error: any) {
     console.error('API call error:', error);
@@ -168,6 +180,8 @@ export interface CreateCategoryDto {
 export const walletApi = {
   getAll: () => apiCall<Wallet[]>('/transaction/wallets'),
   create: (data: CreateWalletDto) => apiCall<Wallet>('/transaction/wallets', 'POST', data),
+  update: (id: string, data: Partial<CreateWalletDto>) => 
+    apiCall<Wallet>(`/transaction/wallets/${id}`, 'PUT', data),
 };
 
 // Category APIs (Transaction Service)
@@ -197,7 +211,7 @@ export interface BudgetCategory {
 }
 
 export interface Budget {
-  id: number;
+  id: string;
   userId: number;
   categoryId: number;
   limitAmount: number;
@@ -216,15 +230,16 @@ export interface CreateBudgetDto {
 // Budget APIs
 export const budgetApi = {
   getAll: () => apiCall<Budget[]>('/budget/budgets'),
-  getById: (id: number) => apiCall<Budget>(`/budget/budgets/${id}`),
+  getById: (id: string) => apiCall<Budget>(`/budget/budgets/${id}`),
   create: (data: CreateBudgetDto) => apiCall<Budget>('/budget/budgets', 'POST', data),
-  update: (id: number, data: Partial<CreateBudgetDto>) => 
+  update: (id: string, data: Partial<CreateBudgetDto>) => 
     apiCall<Budget>(`/budget/budgets/${id}`, 'PUT', data),
-  delete: (id: number) => apiCall<void>(`/budget/budgets/${id}`, 'DELETE'),
+  delete: (id: string) => apiCall<void>(`/budget/budgets/${id}`, 'DELETE'),
 };
 
 // Budget Category APIs
 export const budgetCategoryApi = {
   getAll: () => apiCall<BudgetCategory[]>('/budget/categories'),
+  create: (data: CreateCategoryDto) => apiCall<BudgetCategory>('/budget/categories', 'POST', data),
 };
 
