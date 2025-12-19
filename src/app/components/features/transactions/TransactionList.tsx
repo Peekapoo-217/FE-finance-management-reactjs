@@ -4,7 +4,7 @@ import { Button } from "../../ui/interactive/button";
 import { Plus, Loader2 } from "lucide-react";
 import { Dialog, DialogTrigger } from "../../ui/overlay/dialog";
 import { toast } from "sonner";
-import { transactionApi, type Transaction } from "../../../services/api";
+import { transactionApi, type Transaction, type Budget } from "../../../services/api";
 import { useTransactions } from "../../../hooks/useTransactions";
 import { TransactionForm } from "./TransactionForm";
 import { TransactionItem } from "./TransactionItem";
@@ -15,7 +15,7 @@ interface TransactionListProps {
 }
 
 export function TransactionList({ onDataChange }: TransactionListProps) {
-  const { loading, transactions, wallets, categories, refetch } = useTransactions();
+  const { loading, transactions, wallets, categories, budgets, refetch } = useTransactions();
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -52,6 +52,12 @@ export function TransactionList({ onDataChange }: TransactionListProps) {
     
     if (!formData.categoryId) {
       toast.error('Vui lòng chọn danh mục');
+      return;
+    }
+
+    // Validate: Nếu là expense, phải có budget
+    if (formData.type === 'expense' && !hasBudgetForSelectedCategory) {
+      toast.error('Danh mục này chưa có ngân sách. Vui lòng tạo ngân sách trước khi thêm giao dịch.');
       return;
     }
 
@@ -120,8 +126,25 @@ export function TransactionList({ onDataChange }: TransactionListProps) {
     new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime()
   );
 
-  const filteredCategories = categories.filter(c => c.type === formData.type);
+  // Lấy danh sách category names đã có budget (chỉ cho expense)
+  const categoriesWithBudget = new Set(
+    budgets
+      .filter(b => b.category)
+      .map(b => b.category!.name)
+  );
+
+  // Filter categories: Nếu là expense, chỉ hiển thị những category đã có budget
+  let filteredCategories = categories.filter(c => c.type === formData.type);
+  if (formData.type === 'expense') {
+    filteredCategories = filteredCategories.filter(c => categoriesWithBudget.has(c.name));
+  }
   const hasCategories = filteredCategories.length > 0;
+  
+  // Check xem category đã chọn có budget chưa (cho expense)
+  const selectedCategory = categories.find(c => c.id.toString() === formData.categoryId);
+  const hasBudgetForSelectedCategory = formData.type === 'expense' 
+    ? selectedCategory ? categoriesWithBudget.has(selectedCategory.name) : false
+    : true; // Income không cần budget
 
   if (loading && transactions.length === 0) {
     return (
@@ -152,6 +175,7 @@ export function TransactionList({ onDataChange }: TransactionListProps) {
             wallets={wallets}
             filteredCategories={filteredCategories}
             hasCategories={hasCategories}
+            hasBudgetForSelectedCategory={hasBudgetForSelectedCategory}
             loading={submitting}
             onFormDataChange={(data) => setFormData({ ...formData, ...data })}
             onSubmit={handleSubmit}

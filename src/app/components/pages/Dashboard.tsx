@@ -7,10 +7,8 @@ import {
   calculateTotalWalletBalance,
   getCategoryExpenseData,
   getMonthlyData,
-  getBudgetAlerts,
 } from "../../utils/calculations";
 import { StatCard } from "../common/StatCard";
-import { BudgetAlert } from "../common/BudgetAlert";
 import { ExpensePieChart } from "../common/ExpensePieChart";
 import { MonthlyBarChart } from "../common/MonthlyBarChart";
 import { BudgetList } from "../common/BudgetList";
@@ -27,7 +25,6 @@ export function Dashboard({ refreshTrigger }: DashboardProps) {
   const totalWalletBalance = useMemo(() => calculateTotalWalletBalance(wallets), [wallets]);
   const categoryData = useMemo(() => getCategoryExpenseData(transactions), [transactions]);
   const monthlyData = useMemo(() => getMonthlyData(transactions), [transactions]);
-  const budgetAlerts = useMemo(() => getBudgetAlerts(budgets), [budgets]);
 
   if (loading) {
     return (
@@ -40,8 +37,6 @@ export function Dashboard({ refreshTrigger }: DashboardProps) {
 
   return (
     <div className="space-y-6">
-      <BudgetAlert budgets={budgets} />
-
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatCard
           title="Tổng thu nhập"

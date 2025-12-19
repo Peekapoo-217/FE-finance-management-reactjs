@@ -21,6 +21,7 @@ interface TransactionFormProps {
   wallets: Wallet[];
   filteredCategories: BudgetCategory[];
   hasCategories: boolean;
+  hasBudgetForSelectedCategory: boolean;
   loading: boolean;
   onFormDataChange: (data: Partial<TransactionFormProps['formData']>) => void;
   onSubmit: (e: React.FormEvent) => void;
@@ -32,6 +33,7 @@ export function TransactionForm({
   wallets,
   filteredCategories,
   hasCategories,
+  hasBudgetForSelectedCategory,
   loading,
   onFormDataChange,
   onSubmit,
@@ -99,8 +101,8 @@ export function TransactionForm({
             value={formData.categoryId}
             onValueChange={(value) => onFormDataChange({ categoryId: value })}
           >
-            <SelectTrigger>
-              <SelectValue placeholder={hasCategories ? "Chọn danh mục" : "Chưa có danh mục"} />
+            <SelectTrigger className={formData.type === 'expense' && formData.categoryId && !hasBudgetForSelectedCategory ? 'border-red-500' : ''}>
+              <SelectValue placeholder={hasCategories ? "Chọn danh mục" : formData.type === 'expense' ? "Chưa có danh mục có ngân sách" : "Chưa có danh mục"} />
             </SelectTrigger>
             <SelectContent>
               {hasCategories ? (
@@ -111,11 +113,18 @@ export function TransactionForm({
                 ))
               ) : (
                 <div className="px-3 py-2 text-sm text-gray-500">
-                  Chưa có danh mục. Hãy seed transaction-service hoặc thêm danh mục trước.
+                  {formData.type === 'expense' 
+                    ? 'Chưa có danh mục chi tiêu nào có ngân sách. Vui lòng tạo ngân sách trước.'
+                    : 'Chưa có danh mục. Hãy seed transaction-service hoặc thêm danh mục trước.'}
                 </div>
               )}
             </SelectContent>
           </Select>
+          {formData.type === 'expense' && formData.categoryId && !hasBudgetForSelectedCategory && (
+            <p className="text-sm text-red-600 mt-1">
+              ⚠️ Danh mục này chưa có ngân sách. Vui lòng tạo ngân sách trước khi thêm giao dịch.
+            </p>
+          )}
         </div>
 
         <div>
@@ -165,7 +174,11 @@ export function TransactionForm({
           />
         </div>
 
-        <Button type="submit" className="w-full" disabled={loading || exceedsBalance}>
+        <Button 
+          type="submit" 
+          className="w-full" 
+          disabled={loading || exceedsBalance || (formData.type === 'expense' && !hasBudgetForSelectedCategory)}
+        >
           {loading ? (
             <>
               <Loader2 className="mr-2 animate-spin" size={16} />

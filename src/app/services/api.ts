@@ -243,3 +243,76 @@ export const budgetCategoryApi = {
   create: (data: CreateCategoryDto) => apiCall<BudgetCategory>('/budget/categories', 'POST', data),
 };
 
+// ============== REPORT SERVICE ==============
+
+export interface Report {
+  id: string;
+  userId: string;
+  period: string;
+  dataJson: string | {
+    totalIncome: number;
+    totalExpense: number;
+    savings: number;
+    categoryExpenseData: Array<{ name: string; value: number }>;
+    monthlyComparison: Array<{ month: string; income: number; expense: number }>;
+    trendData: Array<{ name: string; amount: number }>;
+    budgetStatus: Array<{
+      category: string;
+      limitAmount: number;
+      spentAmount: number;
+      percentage: number;
+    }>;
+    period: string;
+    generatedAt: string;
+  };
+  generatedDate: string;
+}
+
+export interface CreateReportDto {
+  category?: string;
+}
+
+// Report APIs
+export const reportApi = {
+  create: (data: CreateReportDto) => 
+    apiCall<Report>('/report/reports', 'POST', data),
+  
+  getAll: (period?: string, category?: string) => {
+    const params = new URLSearchParams();
+    if (period) params.append('period', period);
+    if (category) params.append('category', category);
+    const query = params.toString();
+    return apiCall<Report[]>(`/report/reports${query ? `?${query}` : ''}`);
+  },
+  
+  getById: (id: string) => 
+    apiCall<Report>(`/report/reports/${id}`),
+  
+  exportReport: async (id: string, format: 'pdf' | 'excel') => {
+    const token = TokenManager.getToken();
+    const response = await fetch(
+      `${API_BASE_URL}/report/reports/${id}/export?format=${format}`,
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      }
+    );
+    
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Unknown error' }));
+      throw new Error(error.message || `HTTP ${response.status}`);
+    }
+    
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `report_${id}.${format}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+  },
+};
+
