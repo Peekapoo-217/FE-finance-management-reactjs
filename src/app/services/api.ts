@@ -114,7 +114,11 @@ export const authApi = {
   login: (data: LoginDto) => 
     apiCall<AuthResponse>('/auth/login', 'POST', data, true),
   getProfile: () => 
-    apiCall<AuthResponse['user']>('/auth/profile', 'GET'),
+    apiCall<any>('/auth/profile', 'GET'), // Đổi kiểu về any hoặc tạo interface UserProfile
+  changePassword: (data: { currentPassword: string; newPassword: string }) =>
+    apiCall<void>('/auth/change-password', 'POST', data),
+  updateProfile: (data: { name?: string }) =>
+    apiCall<any>('/auth/profile', 'POST', data),
 };
 
 // ============== TRANSACTION SERVICE ==============
