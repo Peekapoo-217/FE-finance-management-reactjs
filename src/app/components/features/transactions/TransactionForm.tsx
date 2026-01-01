@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { DialogContent, DialogHeader, DialogTitle } from '../../ui/overlay/dialog';
 import { Loader2 } from 'lucide-react';
 import { Wallet, BudgetCategory } from '../../../services/api';
-import { formatCurrencyInput, parseCurrencyInput } from '../../../utils/formatCurrency';
+import { formatCurrency, formatCurrencyInput, parseCurrencyInput } from '../../../utils/formatCurrency';
 
 interface TransactionFormProps {
   formData: {
@@ -44,7 +44,7 @@ export function TransactionForm({
   const walletBalance = selectedWallet ? Number(selectedWallet.balance) : 0;
   const isExpense = formData.type === 'expense';
   const exceedsBalance = isExpense && amount > walletBalance && formData.amount !== '';
-  const balanceError = exceedsBalance 
+  const balanceError = exceedsBalance
     ? `Số tiền vượt quá số dư ví. Số dư hiện tại: ${walletBalance.toLocaleString('vi-VN')} ₫`
     : '';
 
@@ -86,7 +86,7 @@ export function TransactionForm({
             <SelectContent>
               {wallets.map((wallet) => (
                 <SelectItem key={wallet.id} value={wallet.id}>
-                  {wallet.name} ({wallet.balance.toLocaleString('vi-VN')} ₫)
+                  {wallet.name} ({formatCurrency(wallet.balance)} ₫)
                 </SelectItem>
               ))}
             </SelectContent>
@@ -113,7 +113,7 @@ export function TransactionForm({
                 ))
               ) : (
                 <div className="px-3 py-2 text-sm text-gray-500">
-                  {formData.type === 'expense' 
+                  {formData.type === 'expense'
                     ? 'Chưa có danh mục chi tiêu nào có ngân sách. Vui lòng tạo ngân sách trước.'
                     : 'Chưa có danh mục. Hãy seed transaction-service hoặc thêm danh mục trước.'}
                 </div>
@@ -174,9 +174,9 @@ export function TransactionForm({
           />
         </div>
 
-        <Button 
-          type="submit" 
-          className="w-full" 
+        <Button
+          type="submit"
+          className="w-full"
           disabled={loading || exceedsBalance || (formData.type === 'expense' && !hasBudgetForSelectedCategory)}
         >
           {loading ? (

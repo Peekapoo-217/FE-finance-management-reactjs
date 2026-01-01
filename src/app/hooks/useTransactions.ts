@@ -12,16 +12,31 @@ export function useTransactions() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [transactionsData, walletsData, categoriesData, budgetsData] = await Promise.all([
+      // Load transactions và wallets (bắt buộc)
+      const [transactionsData, walletsData] = await Promise.all([
         transactionApi.getAll(),
         walletApi.getAll(),
-        budgetCategoryApi.getAll(),
-        budgetApi.getAll()
       ]);
       setTransactions(transactionsData);
       setWallets(walletsData);
-      setCategories(categoriesData);
-      setBudgets(budgetsData);
+
+      // Load categories from Budget Service (optional)
+      try {
+        const categoriesData = await budgetCategoryApi.getAll();
+        setCategories(categoriesData);
+      } catch (categoryError: any) {
+        console.warn('Cannot load budget categories (Budget Service may be down):', categoryError.message);
+        setCategories([]); // Empty - dùng categories từ Transaction Service nếu cần
+      }
+
+      // Load budgets (optional)
+      try {
+        const budgetsData = await budgetApi.getAll();
+        setBudgets(budgetsData);
+      } catch (budgetError: any) {
+        console.warn('Cannot load budgets (Budget Service may be down):', budgetError.message);
+        setBudgets([]);
+      }
     } catch (error: any) {
       toast.error('Lỗi tải dữ liệu: ' + error.message);
     } finally {
