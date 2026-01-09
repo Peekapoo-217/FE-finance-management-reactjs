@@ -21,7 +21,7 @@ export function WalletManager({ onDataChange }: WalletManagerProps) {
   const [isEditBalanceOpen, setIsEditBalanceOpen] = useState(false);
   const [editingWallet, setEditingWallet] = useState<Wallet | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     name: '',
     balance: '',
@@ -44,7 +44,7 @@ export function WalletManager({ onDataChange }: WalletManagerProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name) {
       toast.error('Vui lòng nhập tên ví');
       return;
@@ -61,7 +61,7 @@ export function WalletManager({ onDataChange }: WalletManagerProps) {
 
       await walletApi.create(payload);
       toast.success('Tạo ví thành công');
-      
+
       setIsOpen(false);
       resetForm();
       await refetch();
@@ -81,7 +81,7 @@ export function WalletManager({ onDataChange }: WalletManagerProps) {
 
   const handleUpdateBalance = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!editingWallet) return;
 
     const newBalance = parseCurrencyInput(balanceFormData.balance);
@@ -94,10 +94,26 @@ export function WalletManager({ onDataChange }: WalletManagerProps) {
     try {
       await walletApi.update(editingWallet.id, { balance: newBalance });
       toast.success('Cập nhật số dư thành công');
-      
+
       setIsEditBalanceOpen(false);
       setEditingWallet(null);
       setBalanceFormData({ balance: '' });
+      await refetch();
+      onDataChange?.();
+    } catch (error: any) {
+      toast.error('Lỗi: ' + error.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (wallet: Wallet) => {
+    if (!confirm(`Bạn có chắc muốn xóa ví "${wallet.name}"?`)) return;
+
+    setSubmitting(true);
+    try {
+      await walletApi.delete(wallet.id);
+      toast.success('Xóa ví thành công');
       await refetch();
       onDataChange?.();
     } catch (error: any) {
@@ -166,6 +182,7 @@ export function WalletManager({ onDataChange }: WalletManagerProps) {
               key={wallet.id}
               wallet={wallet}
               onEditBalance={handleEditBalance}
+              onDelete={handleDelete}
             />
           ))
         )}

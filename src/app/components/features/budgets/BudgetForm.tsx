@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Button } from '../../ui/interactive/button';
 import { Input } from '../../ui/form/input';
 import { Label } from '../../ui/form/label';
@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { DialogContent, DialogHeader, DialogTitle } from '../../ui/overlay/dialog';
 import { Loader2 } from 'lucide-react';
 import { formatCurrencyInput } from '../../../utils/formatCurrency';
-import { type BudgetCategory } from '../../../services/api';
+import { type BudgetCategory, type Budget } from '../../../services/api';
 
 interface BudgetFormProps {
   formData: {
@@ -16,6 +16,7 @@ interface BudgetFormProps {
   };
   editingId: string | null;
   categories: BudgetCategory[];
+  budgets: Budget[];
   loading: boolean;
   onFormDataChange: (data: Partial<BudgetFormProps['formData']>) => void;
   onSubmit: (e: React.FormEvent) => void;
@@ -26,12 +27,23 @@ export function BudgetForm({
   formData,
   editingId,
   categories,
+  budgets,
   loading,
   onFormDataChange,
   onSubmit,
   onOpenCreateCategoryDialog,
 }: BudgetFormProps) {
   const expenseCategories = categories.filter(c => c.type === 'expense');
+
+  // Calculate which categories already have budgets
+  // Only applies when creating new budget (not editing)
+  const categoriesWithBudgets = useMemo(() => {
+    if (editingId) return new Set<string>();
+
+    return new Set(
+      budgets.map(b => b.categoryId.toString())
+    );
+  }, [budgets, editingId]);
 
   return (
     <DialogContent>
@@ -65,11 +77,18 @@ export function BudgetForm({
                   Chưa có danh mục. Nhấn "Thêm danh mục mới" để tạo.
                 </div>
               ) : (
-                expenseCategories.map((cat) => (
-                  <SelectItem key={cat.id} value={cat.id.toString()}>
-                    {cat.name}
-                  </SelectItem>
-                ))
+                expenseCategories.map((cat) => {
+                  const isDisabled = categoriesWithBudgets.has(cat.id.toString());
+                  return (
+                    <SelectItem
+                      key={cat.id}
+                      value={cat.id.toString()}
+                      disabled={isDisabled}
+                    >
+                      {cat.name} {isDisabled && '(Đã có ngân sách)'}
+                    </SelectItem>
+                  );
+                })
               )}
             </SelectContent>
           </Select>
@@ -94,7 +113,7 @@ export function BudgetForm({
           <Label htmlFor="period">Chu kỳ</Label>
           <Select
             value={formData.period}
-            onValueChange={(value: 'weekly' | 'monthly' | 'yearly') => 
+            onValueChange={(value: 'weekly' | 'monthly' | 'yearly') =>
               onFormDataChange({ period: value })
             }
           >

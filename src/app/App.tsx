@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  LayoutDashboard, 
-  Receipt, 
-  Target, 
-  BarChart3, 
-  User, 
+import {
+  LayoutDashboard,
+  Receipt,
+  Target,
+  BarChart3,
+  User,
   RefreshCw,
   LogOut,
   Wallet
@@ -25,12 +25,6 @@ export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  
-  const [user, setUser] = useState({
-    name: 'Nguyễn Văn A',
-    email: 'nguyenvana@example.com',
-    savingsGoal: 5000000
-  });
 
   // Check if user is already logged in
   useEffect(() => {
@@ -45,9 +39,6 @@ export default function App() {
     setRefreshTrigger(prev => prev + 1);
   };
 
-  const handleUpdateUser = (updatedUser: any) => {
-    setUser({ ...user, ...updatedUser });
-  };
 
   const handleLogout = () => {
     TokenManager.removeToken();
@@ -65,14 +56,14 @@ export default function App() {
     { id: 'wallets', label: 'Ví', icon: Wallet },
     { id: 'budgets', label: 'Ngân sách', icon: Target },
     { id: 'reports', label: 'Báo cáo', icon: BarChart3 },
-    { id: 'sync', label: 'Đồng bộ', icon: RefreshCw },
+    // { id: 'sync', label: 'Đồng bộ', icon: RefreshCw },
     { id: 'profile', label: 'Hồ sơ', icon: User },
   ];
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Toaster />
-      
+
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 py-4">
@@ -109,11 +100,10 @@ export default function App() {
                     <button
                       key={item.id}
                       onClick={() => setActiveTab(item.id)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                        activeTab === item.id
-                          ? 'bg-blue-600 text-white'
-                          : 'hover:bg-gray-100 text-gray-700'
-                      }`}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${activeTab === item.id
+                        ? 'bg-blue-600 text-white'
+                        : 'hover:bg-gray-100 text-gray-700'
+                        }`}
                     >
                       <Icon size={20} />
                       <span>{item.label}</span>
@@ -143,7 +133,7 @@ export default function App() {
             )}
             {activeTab === 'sync' && <SyncPage />}
             {activeTab === 'profile' && (
-              <ProfilePage user={user} onUpdate={handleUpdateUser} />
+              <ProfilePage />
             )}
           </div>
         </div>

@@ -46,14 +46,14 @@ export function TransactionItem({ transaction, loading, onEdit, onDelete }: Tran
           {formatCurrency(transaction.amount)} ₫
         </span>
         <div className="flex gap-2">
-          <Button
+          {/* <Button
             variant="ghost"
             size="sm"
             onClick={() => onEdit(transaction)}
             disabled={loading}
           >
             <Pencil size={16} />
-          </Button>
+          </Button> */}
           <Button
             variant="ghost"
             size="sm"

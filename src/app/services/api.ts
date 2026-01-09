@@ -40,16 +40,16 @@ async function apiCall<T>(
     }
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
-    
+
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: 'Unknown error' }));
-      
+
       // Handle unauthorized
       if (response.status === 401) {
         TokenManager.removeToken();
         window.location.href = '/';
       }
-      
+
       throw new Error(error.message || `HTTP ${response.status}`);
     }
 
@@ -109,11 +109,11 @@ export interface AuthResponse {
 }
 
 export const authApi = {
-  register: (data: RegisterDto) => 
+  register: (data: RegisterDto) =>
     apiCall<any>('/auth/register', 'POST', data, true),
-  login: (data: LoginDto) => 
+  login: (data: LoginDto) =>
     apiCall<AuthResponse>('/auth/login', 'POST', data, true),
-  getProfile: () => 
+  getProfile: () =>
     apiCall<any>('/auth/profile', 'GET'), // Đổi kiểu về any hoặc tạo interface UserProfile
   changePassword: (data: { currentPassword: string; newPassword: string }) =>
     apiCall<void>('/auth/change-password', 'POST', data),
@@ -184,8 +184,9 @@ export interface CreateCategoryDto {
 export const walletApi = {
   getAll: () => apiCall<Wallet[]>('/transaction/wallets'),
   create: (data: CreateWalletDto) => apiCall<Wallet>('/transaction/wallets', 'POST', data),
-  update: (id: string, data: Partial<CreateWalletDto>) => 
+  update: (id: string, data: Partial<CreateWalletDto>) =>
     apiCall<Wallet>(`/transaction/wallets/${id}`, 'PUT', data),
+  delete: (id: string) => apiCall<void>(`/transaction/wallets/${id}`, 'DELETE'),
 };
 
 // Category APIs (Transaction Service)
@@ -199,7 +200,7 @@ export const transactionApi = {
   getAll: () => apiCall<Transaction[]>('/transaction/transactions'),
   getById: (id: string) => apiCall<Transaction>(`/transaction/transactions/${id}`),
   create: (data: CreateTransactionDto) => apiCall<Transaction>('/transaction/transactions', 'POST', data),
-  update: (id: string, data: Partial<CreateTransactionDto>) => 
+  update: (id: string, data: Partial<CreateTransactionDto>) =>
     apiCall<Transaction>(`/transaction/transactions/${id}`, 'PUT', data),
   delete: (id: string) => apiCall<void>(`/transaction/transactions/${id}`, 'DELETE'),
 };
@@ -236,7 +237,7 @@ export const budgetApi = {
   getAll: () => apiCall<Budget[]>('/budget/budgets'),
   getById: (id: string) => apiCall<Budget>(`/budget/budgets/${id}`),
   create: (data: CreateBudgetDto) => apiCall<Budget>('/budget/budgets', 'POST', data),
-  update: (id: string, data: Partial<CreateBudgetDto>) => 
+  update: (id: string, data: Partial<CreateBudgetDto>) =>
     apiCall<Budget>(`/budget/budgets/${id}`, 'PUT', data),
   delete: (id: string) => apiCall<void>(`/budget/budgets/${id}`, 'DELETE'),
 };
@@ -278,9 +279,9 @@ export interface CreateReportDto {
 
 // Report APIs
 export const reportApi = {
-  create: (data: CreateReportDto) => 
+  create: (data: CreateReportDto) =>
     apiCall<Report>('/report/reports', 'POST', data),
-  
+
   getAll: (period?: string, category?: string) => {
     const params = new URLSearchParams();
     if (period) params.append('period', period);
@@ -288,10 +289,10 @@ export const reportApi = {
     const query = params.toString();
     return apiCall<Report[]>(`/report/reports${query ? `?${query}` : ''}`);
   },
-  
-  getById: (id: string) => 
+
+  getById: (id: string) =>
     apiCall<Report>(`/report/reports/${id}`),
-  
+
   exportReport: async (id: string, format: 'pdf' | 'excel') => {
     const token = TokenManager.getToken();
     const response = await fetch(
@@ -302,12 +303,12 @@ export const reportApi = {
         },
       }
     );
-    
+
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: 'Unknown error' }));
       throw new Error(error.message || `HTTP ${response.status}`);
     }
-    
+
     const blob = await response.blob();
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');

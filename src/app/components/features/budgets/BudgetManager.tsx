@@ -21,7 +21,7 @@ export function BudgetManager({ onDataChange }: BudgetManagerProps) {
   const [loading, setLoading] = useState(false);
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [categories, setCategories] = useState<BudgetCategory[]>([]);
-  
+
   const [formData, setFormData] = useState({
     categoryId: '',
     limitAmount: '',
@@ -60,7 +60,7 @@ export function BudgetManager({ onDataChange }: BudgetManagerProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.categoryId) {
       toast.error('Vui lòng chọn ngân sách');
       return;
@@ -94,9 +94,13 @@ export function BudgetManager({ onDataChange }: BudgetManagerProps) {
   };
 
   const handleEdit = (budget: Budget) => {
+    // Convert limitAmount to number and round to remove any decimal places
+    // This prevents "5000000.00" from becoming "500000000" when formatting
+    const limitAmountNumber = Math.round(Number(budget.limitAmount));
+
     setFormData({
       categoryId: budget.categoryId.toString(),
-      limitAmount: formatCurrencyInput(budget.limitAmount.toString()),
+      limitAmount: formatCurrencyInput(limitAmountNumber.toString()),
       period: budget.period
     });
     setEditingId(budget.id);
@@ -105,7 +109,7 @@ export function BudgetManager({ onDataChange }: BudgetManagerProps) {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Bạn có chắc muốn xóa ngân sách này?')) return;
-    
+
     setLoading(true);
     try {
       await budgetApi.delete(id);
@@ -155,6 +159,7 @@ export function BudgetManager({ onDataChange }: BudgetManagerProps) {
             formData={formData}
             editingId={editingId}
             categories={categories}
+            budgets={budgets}
             loading={loading}
             onFormDataChange={(data) => setFormData({ ...formData, ...data })}
             onSubmit={handleSubmit}

@@ -5,12 +5,8 @@ import {
   calculateTotalIncome,
   calculateTotalExpense,
   calculateTotalWalletBalance,
-  getCategoryExpenseData,
-  getMonthlyData,
 } from "../../utils/calculations";
 import { StatCard } from "../common/StatCard";
-import { ExpensePieChart } from "../common/ExpensePieChart";
-import { MonthlyBarChart } from "../common/MonthlyBarChart";
 import { BudgetList } from "../common/BudgetList";
 
 interface DashboardProps {
@@ -23,8 +19,6 @@ export function Dashboard({ refreshTrigger }: DashboardProps) {
   const totalIncome = useMemo(() => calculateTotalIncome(transactions), [transactions]);
   const totalExpense = useMemo(() => calculateTotalExpense(transactions), [transactions]);
   const totalWalletBalance = useMemo(() => calculateTotalWalletBalance(wallets), [wallets]);
-  const categoryData = useMemo(() => getCategoryExpenseData(transactions), [transactions]);
-  const monthlyData = useMemo(() => getMonthlyData(transactions), [transactions]);
 
   if (loading) {
     return (
@@ -64,10 +58,7 @@ export function Dashboard({ refreshTrigger }: DashboardProps) {
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ExpensePieChart data={categoryData} totalExpense={totalExpense} />
-        <MonthlyBarChart data={monthlyData} />
-      </div>
+
 
       <BudgetList budgets={budgets} />
     </div>
